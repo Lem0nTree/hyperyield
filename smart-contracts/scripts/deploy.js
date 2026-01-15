@@ -127,7 +127,9 @@ async function main() {
         usdy: null,
         router: null,
         factory: null,
-        markets: {}
+        markets: {},
+        hyperFactory: null,
+        hyperMarket: null
       };
     }
     
@@ -450,47 +452,130 @@ async function main() {
 
   // Deploy HyperFactory
   console.log("\n=== Deploying HyperWin Contracts ===");
+  
+  // Load deployment state for HyperFactory and HyperMarket
+  let deploymentState = loadDeploymentState(network);
+  if (!deploymentState) {
+    deploymentState = {
+      usdy: null,
+      router: null,
+      factory: null,
+      markets: {},
+      hyperFactory: null,
+      hyperMarket: null
+    };
+  }
+  
   console.log("\n1. Deploying HyperFactory...");
-  const HyperFactory = await hre.ethers.getContractFactory("HyperFactory");
-  const hyperFactory = await HyperFactory.deploy(
-    addresses.PENDLE_ROUTER,
-    addresses.PENDLE_FACTORY
-  );
-  await hyperFactory.waitForDeployment();
-  const factoryAddress = await hyperFactory.getAddress();
-  console.log("HyperFactory deployed to:", factoryAddress);
+  let factoryAddress = deploymentState.hyperFactory;
+  let hyperFactory;
+  
+  if (factoryAddress) {
+    console.log(`  Checking if contract exists at ${factoryAddress}...`);
+    const isDeployed = await isContractDeployed(factoryAddress);
+    if (isDeployed) {
+      console.log("  ✓ HyperFactory already deployed at:", factoryAddress);
+      hyperFactory = await hre.ethers.getContractAt("HyperFactory", factoryAddress);
+    } else {
+      console.log("  ⚠ Contract not found at saved address, deploying new one...");
+      const HyperFactory = await hre.ethers.getContractFactory("HyperFactory");
+      hyperFactory = await HyperFactory.deploy(
+        addresses.PENDLE_ROUTER,
+        addresses.PENDLE_FACTORY
+      );
+      await hyperFactory.waitForDeployment();
+      factoryAddress = await hyperFactory.getAddress();
+      console.log("HyperFactory deployed to:", factoryAddress);
+      deploymentState.hyperFactory = factoryAddress;
+      saveDeploymentState(network, deploymentState, true);
+    }
+  } else {
+    const HyperFactory = await hre.ethers.getContractFactory("HyperFactory");
+    hyperFactory = await HyperFactory.deploy(
+      addresses.PENDLE_ROUTER,
+      addresses.PENDLE_FACTORY
+    );
+    await hyperFactory.waitForDeployment();
+    factoryAddress = await hyperFactory.getAddress();
+    console.log("HyperFactory deployed to:", factoryAddress);
+    deploymentState.hyperFactory = factoryAddress;
+    saveDeploymentState(network, deploymentState, true);
+  }
 
   // Create a test market
   console.log("\n2. Creating test market...");
-  const minTimeLock = 30; // 30 days
-  const maxTimeLock = 365; // 365 days
-  const resolutionDate = Math.floor(Date.now() / 1000) + 60 * 24 * 60 * 60; // 60 days from now
-  const oracle = deployer.address; // Use deployer as oracle for testing
+  let marketAddress = deploymentState.hyperMarket;
+  let hyperMarket;
+  
+  if (marketAddress) {
+    console.log(`  Checking if contract exists at ${marketAddress}...`);
+    const isDeployed = await isContractDeployed(marketAddress);
+    if (isDeployed) {
+      console.log("  ✓ HyperMarket already deployed at:", marketAddress);
+      hyperMarket = await hre.ethers.getContractAt("HyperMarket", marketAddress);
+    } else {
+      console.log("  ⚠ Contract not found at saved address, creating new one...");
+      const minTimeLock = 30; // 30 days
+      const maxTimeLock = 365; // 365 days
+      const resolutionDate = Math.floor(Date.now() / 1000) + 60 * 24 * 60 * 60; // 60 days from now
+      const oracle = deployer.address; // Use deployer as oracle for testing
 
-  const tx = await hyperFactory.createMarket(
-    addresses.USDY,
-    minTimeLock,
-    maxTimeLock,
-    resolutionDate,
-    oracle
-  );
-  const receipt = await tx.wait();
+      const tx = await hyperFactory.createMarket(
+        addresses.USDY,
+        minTimeLock,
+        maxTimeLock,
+        resolutionDate,
+        oracle
+      );
+      const receipt = await tx.wait();
 
-  // Get market address from event
-  const marketCreatedEvent = receipt.logs.find(
-    (log) => log.fragment && log.fragment.name === "MarketCreated"
-  );
-  let marketAddress;
-  if (marketCreatedEvent) {
-    marketAddress = marketCreatedEvent.args[0];
+      // Get market address from event
+      const marketCreatedEvent = receipt.logs.find(
+        (log) => log.fragment && log.fragment.name === "MarketCreated"
+      );
+      if (marketCreatedEvent) {
+        marketAddress = marketCreatedEvent.args[0];
+      } else {
+        // Fallback: get from factory
+        const markets = await hyperFactory.getMarkets();
+        marketAddress = markets[0];
+      }
+      console.log("HyperMarket deployed to:", marketAddress);
+      deploymentState.hyperMarket = marketAddress;
+      saveDeploymentState(network, deploymentState, true);
+      hyperMarket = await hre.ethers.getContractAt("HyperMarket", marketAddress);
+    }
   } else {
-    // Fallback: get from factory
-    const markets = await hyperFactory.getMarkets();
-    marketAddress = markets[0];
-  }
-  console.log("HyperMarket deployed to:", marketAddress);
+    const minTimeLock = 30; // 30 days
+    const maxTimeLock = 365; // 365 days
+    const resolutionDate = Math.floor(Date.now() / 1000) + 60 * 24 * 60 * 60; // 60 days from now
+    const oracle = deployer.address; // Use deployer as oracle for testing
 
-  const hyperMarket = await hre.ethers.getContractAt("HyperMarket", marketAddress);
+    const tx = await hyperFactory.createMarket(
+      addresses.USDY,
+      minTimeLock,
+      maxTimeLock,
+      resolutionDate,
+      oracle
+    );
+    const receipt = await tx.wait();
+
+    // Get market address from event
+    const marketCreatedEvent = receipt.logs.find(
+      (log) => log.fragment && log.fragment.name === "MarketCreated"
+    );
+    if (marketCreatedEvent) {
+      marketAddress = marketCreatedEvent.args[0];
+    } else {
+      // Fallback: get from factory
+      const markets = await hyperFactory.getMarkets();
+      marketAddress = markets[0];
+    }
+    console.log("HyperMarket deployed to:", marketAddress);
+    deploymentState.hyperMarket = marketAddress;
+    saveDeploymentState(network, deploymentState, true);
+    hyperMarket = await hre.ethers.getContractAt("HyperMarket", marketAddress);
+  }
 
   // Display market info
   console.log("\n3. Market Configuration:");
