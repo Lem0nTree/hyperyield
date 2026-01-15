@@ -8,7 +8,10 @@
     "test": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy.js --network mantleTestnet",
     "deploy:sepolia": "hardhat run scripts/deploy.js --network mantleSepolia",
-    "deploy:mainnet": "hardhat run scripts/deploy.js --network mantleMainnet"
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network mantleMainnet",
+    "verify:testnet": "hardhat run scripts/verify.js --network mantleTestnet",
+    "verify:sepolia": "hardhat run scripts/verify.js --network mantleSepolia",
+    "verify:mainnet": "hardhat run scripts/verify.js --network mantleMainnet"
   },
   "keywords": [
     "solidity",

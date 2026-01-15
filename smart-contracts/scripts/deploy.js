@@ -509,28 +509,57 @@ async function main() {
   // Verify contracts if on testnet/mainnet
   if (network !== "hardhat" && network !== "localhost") {
     console.log("\n5. Verifying contracts...");
-    try {
-      await hre.run("verify:verify", {
-        address: factoryAddress,
-        constructorArguments: [addresses.PENDLE_ROUTER, addresses.PENDLE_FACTORY],
-      });
-      console.log("  Factory verified");
+    
+    // Check if API key is set
+    const apiKey = process.env.MANTLE_API_KEY || process.env.ETHERSCAN_API_KEY;
+    if (!apiKey) {
+      console.log("  ⚠ Warning: No API key found in environment variables.");
+      console.log("  Set MANTLE_API_KEY or ETHERSCAN_API_KEY in your .env file to enable verification.");
+      console.log("  Skipping verification...");
+    } else {
+      try {
+        console.log("  Verifying HyperFactory...");
+        await hre.run("verify:verify", {
+          address: factoryAddress,
+          constructorArguments: [addresses.PENDLE_ROUTER, addresses.PENDLE_FACTORY],
+        });
+        console.log("  ✓ Factory verified");
 
-      await hre.run("verify:verify", {
-        address: marketAddress,
-        constructorArguments: [
-          addresses.USDY,
-          addresses.PENDLE_ROUTER,
-          addresses.PENDLE_FACTORY,
-          minTimeLock,
-          maxTimeLock,
-          resolutionDate,
-          oracle,
-        ],
-      });
-      console.log("  Market verified");
-    } catch (error) {
-      console.log("  Verification failed:", error.message);
+        console.log("  Verifying HyperMarket...");
+        await hre.run("verify:verify", {
+          address: marketAddress,
+          constructorArguments: [
+            addresses.USDY,
+            addresses.PENDLE_ROUTER,
+            addresses.PENDLE_FACTORY,
+            minTimeLock,
+            maxTimeLock,
+            resolutionDate,
+            oracle,
+          ],
+        });
+        console.log("  ✓ Market verified");
+      } catch (error) {
+        console.log("  ✗ Verification failed:", error.message);
+        if (error.message.includes("Unexpected token") || error.message.includes("<html>")) {
+          console.log("\n  💡 This error usually means:");
+          console.log("     - The API endpoint URL is incorrect");
+          console.log("     - The API key is invalid or expired");
+          console.log("     - The explorer API is temporarily unavailable");
+          console.log("\n  🔧 Try:");
+          console.log("     1. Verify your MANTLE_API_KEY is correct");
+          console.log("     2. Check the explorer website for the correct API endpoint");
+          console.log("     3. Wait a few minutes and try again");
+          console.log("     4. Verify manually on the explorer website if needed");
+        } else if (error.message.includes("Already Verified")) {
+          console.log("  ℹ Contract is already verified on the explorer");
+        } else {
+          console.log("  💡 Common causes:");
+          console.log("     - Compiler settings mismatch (check optimizer settings)");
+          console.log("     - Constructor arguments mismatch");
+          console.log("     - Contract not yet indexed by explorer (wait a few minutes)");
+        }
+      }
     }
   }
 

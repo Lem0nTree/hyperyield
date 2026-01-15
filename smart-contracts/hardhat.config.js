@@ -37,11 +37,20 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: {
-      mantleTestnet: process.env.MANTLE_API_KEY || "",
-      mantleMainnet: process.env.MANTLE_API_KEY || "",
-      mantleSepolia: process.env.MANTLE_API_KEY || "",
-    },
+    // Use single API key for Etherscan v2 API (recommended)
+    // If not set, falls back to network-specific keys for backward compatibility
+    apiKey: (() => {
+      const singleKey = process.env.MANTLE_API_KEY || process.env.ETHERSCAN_API_KEY;
+      if (singleKey) {
+        return singleKey;
+      }
+      // Fallback to network-specific keys (v1 API - deprecated)
+      return {
+        mantleTestnet: process.env.MANTLE_API_KEY || "",
+        mantleMainnet: process.env.MANTLE_API_KEY || "",
+        mantleSepolia: process.env.MANTLE_API_KEY || "",
+      };
+    })(),
     customChains: [
       {
         network: "mantleTestnet",
