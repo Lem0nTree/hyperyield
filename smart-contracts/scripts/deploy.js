@@ -466,6 +466,21 @@ async function main() {
     };
   }
   
+  // Ensure addresses are loaded from deployment state if they exist
+  // (in case mocks were deployed in a previous run)
+  if (deploymentState.router && addresses.PENDLE_ROUTER === "0x0000000000000000000000000000000000000000") {
+    console.log("  Loading router address from deployment state:", deploymentState.router);
+    addresses.PENDLE_ROUTER = deploymentState.router;
+  }
+  if (deploymentState.factory && addresses.PENDLE_FACTORY === "0x0000000000000000000000000000000000000000") {
+    console.log("  Loading factory address from deployment state:", deploymentState.factory);
+    addresses.PENDLE_FACTORY = deploymentState.factory;
+  }
+  if (deploymentState.usdy && addresses.USDY === "0x0000000000000000000000000000000000000000") {
+    console.log("  Loading USDY address from deployment state:", deploymentState.usdy);
+    addresses.USDY = deploymentState.usdy;
+  }
+  
   console.log("\n1. Deploying HyperFactory...");
   let factoryAddress = deploymentState.hyperFactory;
   let hyperFactory;
@@ -490,7 +505,66 @@ async function main() {
       saveDeploymentState(network, deploymentState, true);
     }
   } else {
+    // Validate addresses before deployment
+    if (!addresses.PENDLE_ROUTER || addresses.PENDLE_ROUTER === "0x0000000000000000000000000000000000000000") {
+      throw new Error("PENDLE_ROUTER address not set! Make sure mocks are deployed first.");
+    }
+    if (!addresses.PENDLE_FACTORY || addresses.PENDLE_FACTORY === "0x0000000000000000000000000000000000000000") {
+      throw new Error("PENDLE_FACTORY address not set! Make sure mocks are deployed first.");
+    }
+    
+    console.log("  Validating addresses...");
+    console.log("    Router:", addresses.PENDLE_ROUTER);
+    console.log("    Factory:", addresses.PENDLE_FACTORY);
+    
     const HyperFactory = await hre.ethers.getContractFactory("HyperFactory");
+    
+    // Check contract size
+    await checkContractSize(HyperFactory, "HyperFactory");
+    
+    // Estimate gas first to catch reverts
+    const deployTx = await HyperFactory.getDeployTransaction(
+      addresses.PENDLE_ROUTER,
+      addresses.PENDLE_FACTORY
+    );
+    
+    try {
+      const estimatedGas = await deployer.estimateGas(deployTx);
+      console.log(`  Estimated gas: ${estimatedGas.toString()}`);
+      
+      // Check if gas is reasonable (should be < 5M for factory)
+      if (estimatedGas > 5000000n) {
+        console.warn(`  ⚠ Warning: Gas estimation is high (${estimatedGas.toString()}). This might indicate an issue.`);
+      }
+      
+      // Calculate estimated cost
+      const gasPrice = await hre.ethers.provider.getFeeData();
+      const estimatedCost = estimatedGas * (gasPrice.gasPrice || gasPrice.maxFeePerGas || 0n);
+      console.log(`  Estimated cost: ${hre.ethers.formatEther(estimatedCost)} ETH`);
+      
+      // Check balance
+      const balance = await hre.ethers.provider.getBalance(deployer.address);
+      if (balance < estimatedCost) {
+        const shortfall = estimatedCost - balance;
+        throw new Error(
+          `Insufficient balance! Need ${hre.ethers.formatEther(estimatedCost)} ETH, ` +
+          `have ${hre.ethers.formatEther(balance)} ETH. ` +
+          `Shortfall: ${hre.ethers.formatEther(shortfall)} ETH`
+        );
+      }
+    } catch (gasError) {
+      console.error("  ✗ Gas estimation failed!");
+      console.error("  Error:", gasError.message);
+      console.error("\n  💡 This usually means the transaction would revert.");
+      console.error("  Common causes:");
+      console.error("    - Invalid constructor arguments (zero addresses)");
+      console.error("    - Contract size too large");
+      console.error("    - Network/RPC issue");
+      console.error("    - Insufficient balance");
+      throw gasError;
+    }
+    
+    console.log("  Deploying HyperFactory...");
     hyperFactory = await HyperFactory.deploy(
       addresses.PENDLE_ROUTER,
       addresses.PENDLE_FACTORY

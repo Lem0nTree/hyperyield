@@ -14,7 +14,16 @@ import MockUSDYABI from '@/abi/contracts/mocks/MockUSDY.sol/MockUSDY.json';
 
 // Contract addresses
 const USDY_ADDRESS = '0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e' as `0x${string}`;
+const HYPER_FACTORY_ADDRESS = '0xc8c94E64aDf2281746cB37376789d8C72eB5E986' as `0x${string}`;
 const PLACEHOLDER_ADDRESS = '0x0000000000000000000000000000000000000000' as `0x${string}`;
+
+// Map months to time lock days
+const monthToDaysMap: { [key: number]: number } = {
+  2: 30,
+  6: 90,
+  12: 180,
+  24: 365,
+};
 
 export default function Match() {
   const router = useRouter();
@@ -41,21 +50,14 @@ export default function Match() {
   const [userPosition, setUserPosition] = useState<any>(null);
   const [marketInfo, setMarketInfo] = useState<any>(null);
   const [isPlacingBet, setIsPlacingBet] = useState(false);
-  
-  // Map months to time lock days
-  const monthToDaysMap: { [key: number]: number } = {
-    2: 30,
-    6: 90,
-    12: 180,
-    24: 365,
-  };
 
   // Get market address based on match ID and time period
   useEffect(() => {
     const match = matchesData.find((m) => m.matchID === eventIdString || m.matchID === '1');
     if (match) {
       setMatchDetails(match);
-      const matchMarket = matchMarkets[eventIdString] || matchMarkets['1'];
+      const matchMarketsTyped = matchMarkets as Record<string, { hyperMarketAddress: string; markets: Record<string, string> }>;
+      const matchMarket = matchMarketsTyped[eventIdString] || matchMarketsTyped['1'];
       // Set HyperMarket address (this is where deposit function is)
       if (matchMarket?.hyperMarketAddress) {
         setHyperMarketAddress(matchMarket.hyperMarketAddress as `0x${string}`);
@@ -305,6 +307,7 @@ export default function Match() {
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isApprovalSuccess, isPlacingBet, selectedBet, hyperMarketAddress, depositData?.hash, isDepositing, betAmount, timePeriod, writeDeposit, allowance, marketInfo]);
 
   // Early return must be after ALL hooks
@@ -440,16 +443,15 @@ export default function Match() {
     setTimePeriod(closest);
   };
 
-  // Calculate potential winning based on pool shares
+  // Calculate potential winning based on betting power minus user amount
   const calculatePotentialWinning = () => {
-    if (!selectedBet || !yesBP || !noBP || !totalBP) return 0;
     const amount = parseFloat(betAmount) || 0;
     if (amount === 0) return 0;
     
-    // Simplified calculation - in reality, this depends on yield rates
-    // For now, show the amount + estimated yield
-    const estimatedYield = amount * 0.1; // 10% placeholder
-    return amount + estimatedYield;
+    const bettingPower = parseFloat(calculateBettingPower()) || 0;
+    // Potential winning = Betting Power - User Amount
+    const potentialWinning = bettingPower - amount;
+    return potentialWinning > 0 ? potentialWinning : 0;
   };
 
   // Get time period label
@@ -625,9 +627,11 @@ export default function Match() {
                   width: '100%',
                 }}
               >
-                <Typography sx={{ marginBottom: '8px' }}>Start of the match</Typography>
+                <Typography sx={{ marginBottom: '8px' }}>Game Result</Typography>
                 <Typography component='h5'>
-                  {formatDate(matchDetails.date)}
+                  {marketInfo?.resolutionDate 
+                    ? formatDate(Number(marketInfo.resolutionDate))
+                    : 'Loading...'}
                 </Typography>
               </Box>
             </Box>
@@ -946,7 +950,7 @@ export default function Match() {
                         <Typography component="p">Payout</Typography>
                         <Typography component="p">
                           {parseFloat(betAmount) > 0 
-                            ? (((calculatePotentialWinning() - parseFloat(betAmount)) / parseFloat(betAmount)) * 100).toFixed(1)
+                            ? ((calculatePotentialWinning() / parseFloat(betAmount)) * 100).toFixed(1)
                             : '0.0'}%
                         </Typography>
                       </Box>

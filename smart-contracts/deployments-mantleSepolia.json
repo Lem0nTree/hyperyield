@@ -2,8 +2,6 @@
   "usdy": "0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e",
   "router": "0x38993cF046d4531cC75E114fF5BFeC44001C92a9",
   "factory": "0xb787672C9D77B518d9bE1A2883653259439787D5",
-  "hyperFactory": "0xd0EBBa4BA3f1f6102c23A975e6cd7789943C830b",
-  "hyperMarket": "0x8879e98f0704dc414e4486F05f1d527e6819A41F",
   "markets": {
     "30D": {
       "ptToken": "0xB93e9F640fAA179454292efE6C99Adce33F91ba4",
@@ -27,5 +25,7 @@
       "market": "0x22C8D4fCA47Ac496280B7673f8732Bd592487C98",
       "maturity": 1800018379
     }
-  }
+  },
+  "hyperFactory": "0xc8c94E64aDf2281746cB37376789d8C72eB5E986",
+  "hyperMarket": "0x876e46F6175073e650d97627157cAa9E2d43715B"
 }

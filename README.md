@@ -138,8 +138,8 @@ hyperMarket.claim(0); // 0 = tokens, 1 = exit to cash
 | **USDY**              | `0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e` | Underlying yield-bearing RWA token   |
 | **Pendle Router**     | `0x38993cF046d4531cC75E114fF5BFeC44001C92a9` | Pendle Finance router                |
 | **Pendle Factory**    | `0xb787672C9D77B518d9bE1A2883653259439787D5` | Pendle Finance factory               |
-| **HyperFactory**      | `0xd0EBBa4BA3f1f6102c23A975e6cd7789943C830b` | Factory for deploying markets        |
-| **HyperMarket**       | `0x8879e98f0704dc414e4486F05f1d527e6819A41F` | Core betting market contract         |
+| **HyperFactory**      | `0xc8c94E64aDf2281746cB37376789d8C72eB5E986` | Factory for deploying markets        |
+| **HyperMarket**       | `0x876e46F6175073e650d97627157cAa9E2d43715B` | Core betting market contract         |
 
 ### Pendle Markets
 
