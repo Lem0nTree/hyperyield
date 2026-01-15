@@ -1,0 +1,70 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IPendleMarket",
+  "sourceName": "contracts/interfaces/IPendleMarket.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "expiry",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "expiry",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "readState",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "syIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pyIndex",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalSy",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalPy",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "readTokens",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "pt",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "yt",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

@@ -1,0 +1,24 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "PendleAdapter",
+  "sourceName": "contracts/core/PendleAdapter.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "pendleRouter",
+      "outputs": [
+        {
+          "internalType": "contract IPendleRouter",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

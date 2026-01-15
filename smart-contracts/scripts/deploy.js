@@ -677,21 +677,47 @@ async function main() {
         }
       }
     }
+    
+    // Set default market (use 90D market as default)
+    console.log("\n6. Setting default market for bypass mode...");
+    try {
+      const defaultMarket90D = pendleMarkets.find(pm => pm.days === 90);
+      if (defaultMarket90D) {
+        const currentDefault = await hyperMarket.defaultMarket();
+        if (currentDefault === "0x0000000000000000000000000000000000000000") {
+          console.log(`  Setting default market to 90D: ${defaultMarket90D.market}...`);
+          const tx = await hyperMarket.setDefaultMarket(defaultMarket90D.market);
+          await tx.wait();
+          console.log(`  ✓ Default market set to: ${defaultMarket90D.market}`);
+        } else {
+          console.log(`  ✓ Default market already set: ${currentDefault}`);
+        }
+      } else {
+        console.log("  ⚠ Warning: 90D market not found, default market not set");
+        console.log("  You can set it manually using: hyperMarket.setDefaultMarket(marketAddress)");
+      }
+    } catch (error) {
+      console.error(`  ✗ Failed to set default market: ${error.message}`);
+      console.log("  You can set it manually using: hyperMarket.setDefaultMarket(marketAddress)");
+    }
   }
 
   console.log("\n✅ Deployment complete!");
   console.log("\nNext steps:");
   if (!useMocks) {
     console.log("  1. Register Pendle markets for desired maturities using registerPendleMarket()");
+    console.log("  2. Set default market using setDefaultMarket() for bypass mode");
   }
-  console.log("  2. Set oracle address if different from deployer");
-  console.log("  3. Users can now deposit with custom time locks");
+  console.log("  3. Set oracle address if different from deployer");
+  console.log("  4. Users can now deposit with custom time locks (bypass mode enabled)");
   
   if (useMocks) {
     console.log("\n📝 Note: Using mock contracts for Sepolia testnet");
     console.log("   - MockUSDY: Mints tokens to deployer");
     console.log("   - MockPendleRouter: Splits USDY into PT+YT tokens");
     console.log("   - Pendle markets registered for 30, 90, 180, and 365 days");
+    console.log("   - BYPASS MODE: Default market set, maturity validation bypassed");
+    console.log("   - PT tokens are sent to users, YT tokens stay in contract");
   }
 }
 

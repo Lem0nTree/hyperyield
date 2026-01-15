@@ -1,0 +1,135 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "MockPendleFactory",
+  "sourceName": "contracts/mocks/MockPendleFactory.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "SY",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "PT",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expiry",
+          "type": "uint256"
+        }
+      ],
+      "name": "getMarket",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "market",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "market",
+          "type": "address"
+        }
+      ],
+      "name": "isValidMarket",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "isValid",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "marketValidity",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "markets",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "SY",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "PT",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "expiry",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "market",
+          "type": "address"
+        }
+      ],
+      "name": "registerMarket",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608080604052346100165761023e908161001c8239f35b600080fdfe60806040818152600436101561001457600080fd5b600091823560e01c908163418bc8c21461017a57508063501c262f146100fe57806358e6309f1461013f5780637602d5ad146100fe5763e3d415581461005957600080fd5b346100fa5760803660031901126100fa576100726101b8565b6024356001600160a01b038082168092036100f657606435928184168094036100f257168452836020528284209084526020528183206044358452602052818320817fffffffffffffffffffffffff0000000000000000000000000000000000000000825416179055825260016020528120600160ff1982541617905580f35b8580fd5b8480fd5b5080fd5b50346100fa5760209181610111366101d3565b6001600160a01b03928316855284875283852091831685529086528284209084528552912054915191168152f35b50346100fa5760203660031901126100fa5760ff816020936001600160a01b036101676101b8565b1681526001855220541690519015158152f35b919050346101b45760203660031901126101b45760ff906020936001600160a01b036101a46101b8565b1681526001855220541615158152f35b8280fd5b600435906001600160a01b03821682036101ce57565b600080fd5b60609060031901126101ce576001600160a01b039060043582811681036101ce579160243590811681036101ce57906044359056fea2646970667358221220ab15ea801df1a2ca2f4cf37ac21f9a25e824d54689c645d76ab8738db0b36e2b64736f6c63430008140033",
+  "deployedBytecode": "0x60806040818152600436101561001457600080fd5b600091823560e01c908163418bc8c21461017a57508063501c262f146100fe57806358e6309f1461013f5780637602d5ad146100fe5763e3d415581461005957600080fd5b346100fa5760803660031901126100fa576100726101b8565b6024356001600160a01b038082168092036100f657606435928184168094036100f257168452836020528284209084526020528183206044358452602052818320817fffffffffffffffffffffffff0000000000000000000000000000000000000000825416179055825260016020528120600160ff1982541617905580f35b8580fd5b8480fd5b5080fd5b50346100fa5760209181610111366101d3565b6001600160a01b03928316855284875283852091831685529086528284209084528552912054915191168152f35b50346100fa5760203660031901126100fa5760ff816020936001600160a01b036101676101b8565b1681526001855220541690519015158152f35b919050346101b45760203660031901126101b45760ff906020936001600160a01b036101a46101b8565b1681526001855220541615158152f35b8280fd5b600435906001600160a01b03821682036101ce57565b600080fd5b60609060031901126101ce576001600160a01b039060043582811681036101ce579160243590811681036101ce57906044359056fea2646970667358221220ab15ea801df1a2ca2f4cf37ac21f9a25e824d54689c645d76ab8738db0b36e2b64736f6c63430008140033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

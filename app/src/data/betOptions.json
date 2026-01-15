@@ -1,0 +1,116 @@
+[
+  {
+    "category": "0",
+    "betOptions": [
+      {
+        "tabTitle": "Match Result",
+        "label": "Match Result",
+        "options": [
+          { "value": 1, "name": "Home Win" },
+          { "value": 2, "name": "Draw" },
+          { "value": 3, "name": "Away Win" }
+        ]
+      },
+      {
+        "tabTitle": "Over/Under",
+        "label": "Over/Under",
+        "options": [
+          { "value": 4, "name": "Over 0.5" },
+          { "value": 5, "name": "Under 0.5" },
+          { "value": 6, "name": "Over 1.5" },
+          { "value": 7, "name": "Under 1.5" },
+          { "value": 8, "name": "Over 2.5" },
+          { "value": 9, "name": "Under 2.5" },
+          { "value": 10, "name": "Over 3.5" },
+          { "value": 11, "name": "Under 3.5" }
+        ]
+      },
+      {
+        "tabTitle": "Both Teams Score",
+        "label": "Both Teams Score",
+        "options": [
+          { "value": 12, "name": "Yes" },
+          { "value": 13, "name": "No" }
+        ]
+      },
+      {
+        "tabTitle": "Double Chance",
+        "label": "Double Chance",
+        "options": [
+          { "value": 14, "name": "Home or Draw" },
+          { "value": 15, "name": "Away or Draw" },
+          { "value": 16, "name": "Home or Away" }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "1",
+    "betOptions": [
+      {
+        "tabTitle": "Fight Result",
+        "label": "Fight Result",
+        "options": [
+          { "value": 1, "name": "Fighter A Win" },
+          { "value": 2, "name": "Fighter B Win" }
+        ]
+      },
+      {
+        "tabTitle": "Method of Victory",
+        "label": "Method of Victory",
+        "options": [
+          { "value": 3, "name": "KO/TKO" },
+          { "value": 4, "name": "Submission" },
+          { "value": 5, "name": "Decision" },
+          { "value": 6, "name": "Draw" }
+        ]
+      },
+      {
+        "tabTitle": "Round Betting",
+        "label": "Round Betting",
+        "options": [
+          { "value": 7, "name": "Round 1" },
+          { "value": 8, "name": "Round 2" },
+          { "value": 9, "name": "Round 3" },
+          { "value": 10, "name": "Round 4" },
+          { "value": 11, "name": "Round 5" }
+        ]
+      }
+    ]
+  },
+  {
+    "category": "3",
+    "betOptions": [
+      {
+        "tabTitle": "Match Winner",
+        "label": "Match Winner",
+        "options": [
+          { "value": 1, "name": "Player A" },
+          { "value": 2, "name": "Player B" }
+        ]
+      },
+      {
+        "tabTitle": "Set Betting",
+        "label": "Set Betting",
+        "options": [
+          { "value": 3, "name": "2-0" },
+          { "value": 4, "name": "2-1" },
+          { "value": 5, "name": "0-2" },
+          { "value": 6, "name": "1-2" }
+        ]
+      },
+      {
+        "tabTitle": "Total Games",
+        "label": "Total Games",
+        "options": [
+          { "value": 7, "name": "Over 20.5" },
+          { "value": 8, "name": "Under 20.5" },
+          { "value": 9, "name": "Over 22.5" },
+          { "value": 10, "name": "Under 22.5" }
+        ]
+      }
+    ]
+  }
+]
+
+

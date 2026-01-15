@@ -2,11 +2,33 @@
 
 This guide provides comprehensive documentation for integrating the HyperWin smart contracts into your frontend application.
 
+## 0. Deployed Contract Addresses (Mantle Sepolia Testnet)
+
+**Network:** Mantle Sepolia Testnet
+
+**Core Contracts:**
+- **USDY Token (underlying):** `0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e`
+- **Pendle Router:** `0x38993cF046d4531cC75E114fF5BFeC44001C92a9`
+- **Pendle Factory:** `0xb787672C9D77B518d9bE1A2883653259439787D5`
+- **HyperFactory:** `0xd0EBBa4BA3f1f6102c23A975e6cd7789943C830b`
+- **HyperMarket (example):** `0x8879e98f0704dc414e4486F05f1d527e6819A41F`
+
+**Available Markets (Time Lock Periods):**
+
+| Time Lock | Market Address | PT Token | YT Token |
+|-----------|----------------|----------|----------|
+| 30 days | `0xd8b1a24d16339b0ad19c070C0209D1F03FC10651` | `0xB93e9F640fAA179454292efE6C99Adce33F91ba4` | `0x09d3E52a8fA1dd8f423348766CaD157b82F14777` |
+| 90 days | `0xF7FAE8cCcd0Eb11345c30E71dF329e7DFEeD584E` | `0xc48a515f783c59d818378150f75F25EC5316C23e` | `0x46F182837A69aDFeaa41e58ae0E047A959372885` |
+| 180 days | `0xc96a9742458E6969BeAFe67dfFee43d68e372a50` | `0xE4179529BD5AD59260BEdB89883D70d0d1e87D88` | `0x6400FCcb42906346A507772b0413a01b1a57DEA3` |
+| 365 days | `0x22C8D4fCA47Ac496280B7673f8732Bd592487C98` | `0x70501D9BCd658a872a54513e75F3797c5C1356aA` | `0xb6EafED75612EeA5EF6dF26100F951aC166FcEf9` |
+
+**Note:** You can also fetch all markets dynamically using `HyperFactory.getMarkets()`.
+
 ## 1. Contract Surfaces
 
 ### 1.1 HyperFactory (entrypoint)
 
-**Address:** backend/config per network (Mantle testnet/mainnet).
+**Address (Mantle Sepolia):** `0xd0EBBa4BA3f1f6102c23A975e6cd7789943C830b`
 
 **Key methods:**
 
@@ -115,20 +137,33 @@ From the market address + user address:
 
 **Steps (frontend):**
 
-1. User selects:
-   - Market (HyperMarket address).
-   - Side (YES/NO).
-   - Amount in USDY.
-   - Time lock (days) within `[minTimeLock, maxTimeLock]`.
+1. **User selects:**
+   - **Market (Time Lock Period):** Choose from available markets:
+     - `30` days → Market address: `0xd8b1a24d16339b0ad19c070C0209D1F03FC10651`
+     - `90` days → Market address: `0xF7FAE8cCcd0Eb11345c30E71dF329e7DFEeD584E`
+     - `180` days → Market address: `0xc96a9742458E6969BeAFe67dfFee43d68e372a50`
+     - `365` days → Market address: `0x22C8D4fCA47Ac496280B7673f8732Bd592487C98`
+   - **Bet Outcome (Side):**
+     - `1` = YES (user bets the market outcome will be YES)
+     - `2` = NO (user bets the market outcome will be NO)
+   - **Amount:** Amount in USDY (in wei, e.g., `ethers.utils.parseUnits("100", 18)` for 100 USDY)
+   - **Time Lock Days:** Must match the selected market (30, 90, 180, or 365)
 
-2. **Approve:**
+2. **Approve USDY Token:**
    ```javascript
-   underlyingToken.approve(hyperMarketAddress, amount)
+   // USDY token address: 0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e
+   const usdyAddress = '0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e';
+   const usdyToken = new ethers.Contract(usdyAddress, erc20ABI, signer);
+   await usdyToken.approve(hyperMarketAddress, amount);
    ```
 
-3. **Deposit:**
+3. **Deposit (Place Bet):**
    ```javascript
-   hyperMarket.deposit(amount, timeLockDays, side)
+   const hyperMarket = new ethers.Contract(hyperMarketAddress, hyperMarketABI, signer);
+   // timeLockDays must match the market: 30, 90, 180, or 365
+   // side: 1 for YES, 2 for NO
+   const depositTx = await hyperMarket.deposit(amount, timeLockDays, side);
+   await depositTx.wait();
    ```
 
 4. **Listen to `Deposited` event:**
@@ -137,11 +172,31 @@ From the market address + user address:
    ```
    (exact fields depend on implementation, but you know the event from the contract).
 
+**Example: Placing a 100 USDY bet on YES for 90 days:**
+```javascript
+const marketAddress = '0xF7FAE8cCcd0Eb11345c30E71dF329e7DFEeD584E'; // 90D market
+const amount = ethers.utils.parseUnits("100", 18); // 100 USDY
+const timeLockDays = 90; // Must match the market
+const side = 1; // 1 = YES, 2 = NO
+
+// Approve
+await usdyToken.approve(marketAddress, amount);
+
+// Deposit
+await hyperMarket.deposit(amount, timeLockDays, side);
+```
+
 **For UX:**
 
-- Fetch `market()` to validate user's chosen `timeLockDays` on the client before sending tx.
-- Show an estimated BP:
+- **Validate inputs before transaction:**
+  - Fetch `market()` to validate user's chosen `timeLockDays` matches the selected market.
+  - Ensure `side` is either `1` (YES) or `2` (NO).
+  - Check user has sufficient USDY balance.
+- **Show an estimated BP:**
   - Frontend can approximately compute BP using the same formula if it also reads current `yieldRate` from Pendle, or rely on the position after tx confirmation.
+- **Display market selection clearly:**
+  - Show available markets as buttons/cards: "30 Days", "90 Days", "180 Days", "365 Days"
+  - Show bet outcome selection: "YES" (side=1) or "NO" (side=2) as toggle buttons
 
 ### 2.3 User Past Bets
 
@@ -283,8 +338,21 @@ sideBPPool(1) / sideBPPool(2)
 
 ### To place a bet:
 ```javascript
-underlyingToken.approve(marketAddress, amount)
-market.deposit(amount, timeLockDays, side)
+// 1. Select market (30, 90, 180, or 365 days)
+const marketAddress = MARKETS[90]; // e.g., 90 days market
+
+// 2. Select bet outcome: 1 = YES, 2 = NO
+const side = 1; // or 2 for NO
+
+// 3. Convert amount to wei (USDY has 18 decimals)
+const amount = ethers.utils.parseUnits("100", 18); // 100 USDY
+
+// 4. Approve USDY token
+await usdyToken.approve(marketAddress, amount);
+
+// 5. Deposit (place bet)
+await market.deposit(amount, timeLockDays, side);
+// Note: timeLockDays must match the market (30, 90, 180, or 365)
 ```
 
 ### To claim:
@@ -299,14 +367,27 @@ market.claim(0)  // 0 = tokens, 1 = exit to cash
 ```javascript
 import { ethers } from 'ethers';
 
-const factoryAddress = '0x...'; // From deployment
+// Mantle Sepolia addresses
+const HYPER_FACTORY_ADDRESS = '0xd0EBBa4BA3f1f6102c23A975e6cd7789943C830b';
+const USDY_ADDRESS = '0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e';
+
+// Market addresses by time lock
+const MARKETS = {
+  30: '0xd8b1a24d16339b0ad19c070C0209D1F03FC10651',
+  90: '0xF7FAE8cCcd0Eb11345c30E71dF329e7DFEeD584E',
+  180: '0xc96a9742458E6969BeAFe67dfFee43d68e372a50',
+  365: '0x22C8D4fCA47Ac496280B7673f8732Bd592487C98'
+};
+
 const factoryABI = [...]; // HyperFactory ABI
 const marketABI = [...]; // HyperMarket ABI
+const erc20ABI = [...]; // Standard ERC20 ABI
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
 
-const factory = new ethers.Contract(factoryAddress, factoryABI, signer);
+const factory = new ethers.Contract(HYPER_FACTORY_ADDRESS, factoryABI, signer);
+const usdyToken = new ethers.Contract(USDY_ADDRESS, erc20ABI, signer);
 ```
 
 ### 4.2 Fetch All Markets
@@ -346,18 +427,82 @@ async function getUserPosition(marketAddress, userAddress) {
 
 ### 4.4 Place a Bet
 
+**Complete example with market selection and bet outcome:**
+
 ```javascript
-async function placeBet(marketAddress, amount, timeLockDays, side) {
+/**
+ * Place a bet on a HyperMarket
+ * @param {number} timeLockDays - Market time lock: 30, 90, 180, or 365
+ * @param {number} side - Bet outcome: 1 for YES, 2 for NO
+ * @param {string} amountUSDY - Amount in USDY (as string, e.g., "100")
+ * @returns {Promise<ethers.ContractReceipt>} Transaction receipt
+ */
+async function placeBet(timeLockDays, side, amountUSDY) {
+  // Validate inputs
+  if (![30, 90, 180, 365].includes(timeLockDays)) {
+    throw new Error('Invalid time lock. Must be 30, 90, 180, or 365 days');
+  }
+  if (side !== 1 && side !== 2) {
+    throw new Error('Invalid side. Must be 1 (YES) or 2 (NO)');
+  }
+
+  // Get market address
+  const marketAddress = MARKETS[timeLockDays];
+  if (!marketAddress) {
+    throw new Error(`Market not found for ${timeLockDays} days`);
+  }
+
+  // Convert amount to wei (USDY has 18 decimals)
+  const amount = ethers.utils.parseUnits(amountUSDY, 18);
+
+  // Create contract instances
   const market = new ethers.Contract(marketAddress, marketABI, signer);
-  const underlyingToken = new ethers.Contract(
-    await market.underlyingToken(),
-    erc20ABI,
-    signer
-  );
+
+  // Check user balance
+  const balance = await usdyToken.balanceOf(await signer.getAddress());
+  if (balance.lt(amount)) {
+    throw new Error('Insufficient USDY balance');
+  }
+
+  // Check current allowance
+  const allowance = await usdyToken.allowance(await signer.getAddress(), marketAddress);
+  if (allowance.lt(amount)) {
+    // Approve USDY token
+    console.log('Approving USDY token...');
+    const approveTx = await usdyToken.approve(marketAddress, amount);
+    await approveTx.wait();
+    console.log('Approval confirmed');
+  }
+
+  // Deposit (place bet)
+  console.log(`Placing bet: ${amountUSDY} USDY, ${timeLockDays} days, side ${side === 1 ? 'YES' : 'NO'}`);
+  const depositTx = await market.deposit(amount, timeLockDays, side);
+  const receipt = await depositTx.wait();
   
-  // Approve
-  const approveTx = await underlyingToken.approve(marketAddress, amount);
-  await approveTx.wait();
+  console.log('Bet placed! Transaction:', receipt.transactionHash);
+  return receipt;
+}
+
+// Usage examples:
+// Place 100 USDY bet on YES for 90 days
+// await placeBet(90, 1, "100");
+
+// Place 50 USDY bet on NO for 30 days
+// await placeBet(30, 2, "50");
+```
+
+**Simplified version (if you already have the market address):**
+
+```javascript
+async function placeBetWithAddress(marketAddress, amount, timeLockDays, side) {
+  const market = new ethers.Contract(marketAddress, marketABI, signer);
+  
+  // Approve if needed
+  const allowance = await usdyToken.allowance(await signer.getAddress(), marketAddress);
+  if (allowance.lt(amount)) {
+    const approveTx = await usdyToken.approve(marketAddress, amount);
+    await approveTx.wait();
+  }
   
   // Deposit
   const depositTx = await market.deposit(amount, timeLockDays, side);
