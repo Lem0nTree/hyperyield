@@ -23,7 +23,6 @@ contract HyperMarket is ReentrancyGuard, Ownable, PendleAdapter {
     // --- Configuration ---
     IERC20 public immutable underlyingToken; // USDY
     IPendleFactory public pendleFactory; // For market validation
-    address public defaultMarket; // Default Pendle market to use (bypass mode)
     
     // --- Market State ---
     HyperStructs.MarketParams public market;
@@ -97,15 +96,6 @@ contract HyperMarket is ReentrancyGuard, Ownable, PendleAdapter {
             outcome: 0
         });
     }
-    
-    /**
-     * @dev Set default market for bypass mode
-     * @param _defaultMarket Address of the default Pendle market to use
-     */
-    function setDefaultMarket(address _defaultMarket) external onlyOwner {
-        require(_defaultMarket != address(0), "Invalid market");
-        defaultMarket = _defaultMarket;
-    }
 
     /**
      * @dev Register a Pendle market for a specific maturity
@@ -140,12 +130,10 @@ contract HyperMarket is ReentrancyGuard, Ownable, PendleAdapter {
     }
 
     /**
-     * @dev Deposit with custom time lock (BYPASS MODE)
+     * @dev Deposit with custom time lock
      * @param amount Principal amount in USDY
      * @param timeLockDays User-selected lock period in days
      * @param side 1 = YES, 2 = NO
-     * @notice Uses default market, bypasses maturity validation
-     * @notice PT tokens are sent to user, YT tokens are kept in contract
      */
     function deposit(
         uint256 amount,
@@ -160,17 +148,17 @@ contract HyperMarket is ReentrancyGuard, Ownable, PendleAdapter {
             timeLockDays >= market.minTimeLock && timeLockDays <= market.maxTimeLock,
             "Invalid time lock"
         );
-        require(defaultMarket != address(0), "Default market not set");
         
-        // BYPASS: Use default market instead of validating maturity
-        IPendleMarket marketContract = IPendleMarket(defaultMarket);
-        (address ptToken, address ytToken) = marketContract.readTokens();
-        
-        // Calculate maturity date (for record keeping, but not validated)
+        // Calculate maturity date
         uint256 maturityDate = block.timestamp + (timeLockDays * 1 days);
         
-        // Fetch yield rate and calculate BP (using default market)
-        uint256 yieldRateBps = _getYieldRate(defaultMarket);
+        // Validate Pendle market exists
+        _validatePendleMarketExists(maturityDate);
+        HyperStructs.PendleMarketInfo storage marketInfo = pendleMarkets[maturityDate];
+        require(marketInfo.isActive, "Market not active");
+        
+        // Fetch yield rate and calculate BP
+        uint256 yieldRateBps = _getYieldRate(marketInfo.market);
         uint256 bp = _calculateBP(amount, yieldRateBps, timeLockDays);
         
         // Transfer USDY from user
@@ -187,10 +175,9 @@ contract HyperMarket is ReentrancyGuard, Ownable, PendleAdapter {
             swapData: IPendleRouter.SwapData(0, address(0), "", false)
         });
         
-        // Mint PT+YT to this contract
         uint256 mintedPy = pendleRouter.mintPyFromToken(
             address(this),
-            defaultMarket,
+            marketInfo.market,
             0, // minPyOut = 0 for MVP
             input
         );
@@ -198,24 +185,23 @@ contract HyperMarket is ReentrancyGuard, Ownable, PendleAdapter {
         // Reset approval
         underlyingToken.approve(address(pendleRouter), 0);
         
-        // BYPASS: Transfer PT tokens to user, keep YT in contract
-        IERC20(ptToken).transfer(msg.sender, mintedPy);
-        
         // Update position
         HyperStructs.Position storage pos = positions[msg.sender];
         
         // If user already has a position, ensure same side
         if (pos.principalAmount > 0) {
             require(pos.side == side, "Cannot hedge");
+            // For MVP, we allow same side but different maturities
+            // In production, you might want to restrict this
         } else {
             pos.side = side;
         }
         
         pos.principalAmount += amount;
         pos.bettingPower += bp;
-        pos.maturityDate = maturityDate; // Use calculated maturity for record keeping
-        pos.ptBalance = 0; // User holds PT, so contract balance is 0
-        pos.ytBalance += mintedPy; // YT stays in contract
+        pos.maturityDate = maturityDate; // Use latest maturity
+        pos.ptBalance += mintedPy;
+        pos.ytBalance += mintedPy;
         
         // Update global pools
         totalBPPot += bp;
