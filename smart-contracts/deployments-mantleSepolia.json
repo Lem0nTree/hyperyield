@@ -1,0 +1,29 @@
+{
+  "usdy": "0x36ec3E9208f0B177bd72283ED54E3f3bf42c0A8e",
+  "router": "0x38993cF046d4531cC75E114fF5BFeC44001C92a9",
+  "factory": "0xb787672C9D77B518d9bE1A2883653259439787D5",
+  "markets": {
+    "30D": {
+      "ptToken": "0xB93e9F640fAA179454292efE6C99Adce33F91ba4",
+      "ytToken": "0x09d3E52a8fA1dd8f423348766CaD157b82F14777",
+      "market": "0xd8b1a24d16339b0ad19c070C0209D1F03FC10651"
+    },
+    "90D": {
+      "ptToken": "0xc48a515f783c59d818378150f75F25EC5316C23e",
+      "ytToken": "0x46F182837A69aDFeaa41e58ae0E047A959372885",
+      "market": "0xF7FAE8cCcd0Eb11345c30E71dF329e7DFEeD584E"
+    },
+    "180D": {
+      "ptToken": "0xE4179529BD5AD59260BEdB89883D70d0d1e87D88",
+      "ytToken": "0x6400FCcb42906346A507772b0413a01b1a57DEA3",
+      "market": "0xc96a9742458E6969BeAFe67dfFee43d68e372a50",
+      "maturity": 1784034337
+    },
+    "365D": {
+      "ptToken": "0x70501D9BCd658a872a54513e75F3797c5C1356aA",
+      "ytToken": "0xb6EafED75612EeA5EF6dF26100F951aC166FcEf9",
+      "market": "0x22C8D4fCA47Ac496280B7673f8732Bd592487C98",
+      "maturity": 1800018379
+    }
+  }
+}

@@ -1,5 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-verify");
+require("dotenv").config();  // Add this line
+
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -8,7 +10,7 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 1000, // Higher runs = smaller bytecode, more gas for execution
       },
       viaIR: true, // Enable IR-based code generation to avoid "stack too deep" errors
     },
@@ -27,11 +29,18 @@ module.exports = {
       chainId: 5000,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
+    mantleSepolia: {
+      url: "https://rpc.sepolia.mantle.xyz",
+      chainId: 5003,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      // Let ethers estimate gas automatically - don't set explicit limits
+    },
   },
   etherscan: {
     apiKey: {
       mantleTestnet: process.env.MANTLE_API_KEY || "",
       mantleMainnet: process.env.MANTLE_API_KEY || "",
+      mantleSepolia: process.env.MANTLE_API_KEY || "",
     },
     customChains: [
       {
@@ -48,6 +57,14 @@ module.exports = {
         urls: {
           apiURL: "https://explorer.mantle.xyz/api",
           browserURL: "https://explorer.mantle.xyz",
+        },
+      },
+      {
+        network: "mantleSepolia",
+        chainId: 5003,
+        urls: {
+          apiURL: "https://explorer.sepolia.mantle.xyz/api",
+          browserURL: "https://explorer.sepolia.mantle.xyz",
         },
       },
     ],
